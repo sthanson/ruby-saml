@@ -531,6 +531,7 @@ module OneLogin
       #
       def validate_subject_confirmation
         valid_subject_confirmation = false
+        found_data_to_test = false
 
         subject_confirmation_nodes = xpath_from_signed_assertion('/a:Subject/a:SubjectConfirmation')
         
@@ -548,6 +549,7 @@ module OneLogin
 
           next unless confirmation_data_node
 
+          found_data_to_test = true
           attrs = confirmation_data_node.attributes
           next if (attrs.include? "InResponseTo" and attrs['InResponseTo'] != in_response_to) ||
                   (attrs.include? "NotOnOrAfter" and (parse_time(confirmation_data_node, "NotOnOrAfter") + allowed_clock_drift) <= now) ||
@@ -557,7 +559,7 @@ module OneLogin
           break
         end
 
-        if !valid_subject_confirmation
+        if !valid_subject_confirmation && found_data_to_test
           error_msg = "A valid SubjectConfirmation was not found on this Response"
           return append_error(error_msg)
         end
